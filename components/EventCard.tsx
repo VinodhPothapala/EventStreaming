@@ -1,7 +1,7 @@
-// components/EventCard.tsx
 'use client';
-import { Tier, tierOrder } from '@/lib/tier';
 import { format } from 'date-fns';
+import type { Tier } from '@/types/database';
+import { tierOrder } from '@/lib/tier';
 
 type Props = {
   title: string;
@@ -10,6 +10,7 @@ type Props = {
   tier: Tier;
   image_url?: string;
   userTier: Tier;
+  locked: boolean;
 };
 
 const tierColors: Record<Tier, string> = {
@@ -26,15 +27,23 @@ export function EventCard({
   tier,
   image_url,
   userTier,
+  locked,
 }: Props) {
-  const userOrder = tierOrder(userTier);
-  const eventOrder = tierOrder(tier);
-  const locked = eventOrder > userOrder;
   return (
-    <div className="relative border rounded-lg overflow-hidden shadow-sm bg-white flex flex-col">
+    <div
+      className={`relative border rounded-lg overflow-hidden shadow-sm bg-white flex flex-col transition ${
+        locked ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-lg'
+      }`}
+      aria-disabled={locked}
+      title={
+        locked
+          ? `Upgrade to ${tier.toUpperCase()} to access this event`
+          : undefined
+      }
+    >
       <div className="h-40 w-full overflow-hidden">
         <img
-          src={image_url || 'https://via.placeholder.com/400x200?text=Event'}
+          src={image_url || 'https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d?auto=format&fit=crop&w=400&h=200&q=80'}
           alt={title}
           className="w-full h-full object-cover"
         />
@@ -53,23 +62,19 @@ export function EventCard({
           <div className="text-xs text-gray-600">
             {format(new Date(event_date), 'PPP p')}
           </div>
-          {locked ? (
-            <div className="text-sm font-medium text-red-600">
-              Upgrade to {tier.toUpperCase()} to access
-            </div>
-          ) : (
+          {!locked ? (
             <div className="text-sm font-medium text-green-600">Available</div>
+          ) : (
+            <div className="text-sm font-medium text-red-600">
+              Locked
+            </div>
           )}
         </div>
       </div>
+      {/* Optional subtle badge for locked */}
       {locked && (
-        <div className="absolute inset-0 bg-white/75 flex items-center justify-center">
-          <div className="text-center">
-            <div className="mb-2 font-semibold">
-              {tier.toUpperCase()} content
-            </div>
-            <div className="text-sm">Upgrade your tier to unlock.</div>
-          </div>
+        <div className="absolute top-2 right-2 bg-red-100 text-red-700 text-xs px-2 py-1 rounded">
+          Upgrade
         </div>
       )}
     </div>
